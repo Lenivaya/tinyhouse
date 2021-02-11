@@ -1,0 +1,16 @@
+{
+  "name": "tinyhouse-server",
+  "description": "description",
+  "version": "0.1.0",
+  "author": "Daniil Osipchuk <xocada@gmail.com>",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.17.1"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.7"
+  },
+  "scripts": {
+    "start": "nodemon src/"
+  }
+}
