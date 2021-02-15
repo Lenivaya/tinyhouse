@@ -1,9 +1,9 @@
 import { FC } from "react";
-import { server } from "../../lib/api";
+import { useMutation, useQuery } from "../../lib/api";
 import {
-  ListingsData,
+  DeleteListingData,
   DeleteListingVariables,
-  DeleteListingData
+  ListingsData
 } from "./types";
 
 const LISTINGS = `
@@ -34,29 +34,52 @@ interface Props {
 }
 
 export const Listings: FC<Props> = ({ title }) => {
-  const fetchListings = async () => {
-    const { data } = await server.fetch<ListingsData>({ query: LISTINGS });
-    console.log(data);
+  const { data, refetch, loading, error } = useQuery<ListingsData>(LISTINGS);
+  const listings = data ? data.listings : null;
+
+  const [
+    deleteListing,
+    { loading: deleteListingLoading, error: deleteListingError }
+  ] = useMutation<DeleteListingData, DeleteListingVariables>(DELETE_LISTING);
+
+  const handleDeleteListing = async (id: string) => {
+    await deleteListing({ id });
+
+    refetch();
   };
 
-  const deleteListing = async () => {
-    const { data } = await server.fetch<
-      DeleteListingData,
-      DeleteListingVariables
-    >({
-      query: DELETE_LISTING,
-      variables: {
-        id: "6027db54f096db5e694ecbb7"
-      }
-    });
-    console.log(data);
-  };
+  const listingsList = listings ? (
+    <ul>
+      {listings.map(listing => {
+        return (
+          <li key={listing.id}>
+            {listing.title}
+            <button onClick={() => handleDeleteListing(listing.id)}>
+              Delete
+            </button>
+          </li>
+        );
+      })}
+    </ul>
+  ) : null;
+
+  if (loading) return <h2>Loading...</h2>;
+  if (error) return <h2>Something went wrong - please try again</h2>;
+
+  const deleteListingLoadingMessage = deleteListingLoading ? (
+    <h4>Deletion in progress...</h4>
+  ) : null;
+
+  const deleteListingErrorMessage = deleteListingError ? (
+    <h4>Something went wrong when deleting a Listing</h4>
+  ) : null;
 
   return (
     <div>
       <h2>{title}</h2>
-      <button onClick={fetchListings}>Query Listings!</button>
-      <button onClick={deleteListing}>Delete Listing!</button>
+      {listingsList}
+      {deleteListingLoadingMessage}
+      {deleteListingErrorMessage}
     </div>
   );
 };
