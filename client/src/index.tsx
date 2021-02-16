@@ -4,6 +4,7 @@ import { Listings } from "./sections";
 import ApolloClient from "apollo-boost";
 import { ApolloProvider } from "react-apollo";
 import reportWebVitals from "./reportWebVitals";
+import "./styles/index.css";
 
 const client = new ApolloClient({
   uri: "http://localhost:9000/api"
