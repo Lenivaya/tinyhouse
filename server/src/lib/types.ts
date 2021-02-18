@@ -1,8 +1,16 @@
-import { Collection, ObjectID } from "mongodb";
+import { Collection, ObjectId } from "mongodb";
+
+export interface Viewer {
+  _id?: string;
+  token?: string;
+  avatar?: string;
+  walletId?: string;
+  didRequest: boolean;
+}
 
 export enum ListingType {
-  Apartment = "APARTMENT",
-  House = "HOUSE"
+  Apartment = "apartment",
+  House = "house"
 }
 
 export interface BookingsIndexMonth {
@@ -13,20 +21,16 @@ export interface BookingsIndexYear {
   [key: string]: BookingsIndexMonth;
 }
 
-export interface BookingsIndex {
-  [key: string]: BookingsIndexYear;
-}
-
 export interface Booking {
-  _id: ObjectID;
-  listing: ObjectID;
+  _id: ObjectId;
+  listing: ObjectId;
   tenant: string;
   checkIn: string;
   checkOut: string;
 }
 
 export interface Listing {
-  _id: ObjectID;
+  _id: ObjectId;
   title: string;
   description: string;
   image: string;
@@ -36,8 +40,8 @@ export interface Listing {
   country: string;
   admin: string;
   city: string;
-  bookings: ObjectID[];
-  bookingsIndex: BookingsIndex;
+  bookings: ObjectId[];
+  bookingsIndex: BookingsIndexYear;
   price: number;
   numOfGuests: number;
 }
@@ -48,14 +52,14 @@ export interface User {
   name: string;
   avatar: string;
   contact: string;
-  walletId: string | undefined;
+  walletId?: string;
   income: number;
-  bookings: ObjectID[];
-  listings: ObjectID[];
+  bookings: ObjectId[];
+  listings: ObjectId[];
 }
 
 export interface Database {
-  listings: Collection<Listing>;
   bookings: Collection<Booking>;
+  listings: Collection<Listing>;
   users: Collection<User>;
 }
