@@ -25,8 +25,8 @@ const clear = async () => {
     }
 
     console.log("[clear] : success");
-  } catch {
-    throw new Error("failed to clear database");
+  } catch (err) {
+    throw new Error(`failed to clear database: ${err}`);
   }
 };
 
