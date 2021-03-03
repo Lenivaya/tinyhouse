@@ -1,13 +1,14 @@
 import React, { useState } from "react";
 import { RouteComponentProps } from "react-router-dom";
 import { useQuery } from "@apollo/react-hooks";
-import { Layout } from "antd";
+import { Col, Layout, Row } from "antd";
 import { ErrorBanner, PageSkeleton } from "../../lib/components";
 import { LISTING } from "../../lib/graphql/queries";
 import {
   Listing as ListingData,
   ListingVariables
 } from "../../lib/graphql/queries/Listing/__generated__/Listing";
+import { ListingBookings, ListingDetails } from "./components";
 
 interface MatchParams {
   id: string;
@@ -17,7 +18,6 @@ const { Content } = Layout;
 const PAGE_LIMIT = 3;
 
 export const Listing = ({ match }: RouteComponentProps<MatchParams>) => {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [bookingsPage, setBookingsPage] = useState(1);
 
   const { loading, data, error } = useQuery<ListingData, ListingVariables>(LISTING, {
@@ -46,9 +46,27 @@ export const Listing = ({ match }: RouteComponentProps<MatchParams>) => {
   }
 
   const listing = data ? data.listing : null;
-
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const listingBookings = listing ? listing.bookings : null;
 
-  return <h2>Listing</h2>;
+  const listingDetailsElement = listing ? <ListingDetails listing={listing} /> : null;
+
+  const listingBookingsElement = listingBookings ? (
+    <ListingBookings
+      listingBookings={listingBookings}
+      bookingsPage={bookingsPage}
+      limit={PAGE_LIMIT}
+      setBookingsPage={setBookingsPage}
+    />
+  ) : null;
+
+  return (
+    <Content className="listings">
+      <Row gutter={24} type="flex" justify="space-between">
+        <Col xs={24} lg={14}>
+          {listingDetailsElement}
+          {listingBookingsElement}
+        </Col>
+      </Row>
+    </Content>
+  );
 };
