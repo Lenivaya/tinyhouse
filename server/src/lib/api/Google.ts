@@ -1,5 +1,10 @@
 import { google } from "googleapis";
-import { createClient, AddressComponent } from "@google/maps";
+import {
+  createClient,
+  AddressComponent,
+  AddressType,
+  GeocodingAddressComponentType
+} from "@google/maps";
 
 const auth = new google.auth.OAuth2(
   process.env.G_CLIENT_ID,
@@ -9,7 +14,11 @@ const auth = new google.auth.OAuth2(
 
 const maps = createClient({ key: `${process.env.G_GEOCODE_KEY}`, Promise });
 
-const parseAddress = (addressComponents: AddressComponent[]) => {
+const parseAddress = (
+  addressComponents: AddressComponent<
+    AddressType | GeocodingAddressComponentType
+  >[]
+) => {
   let country = null;
   let admin = null;
   let city = null;
@@ -23,7 +32,10 @@ const parseAddress = (addressComponents: AddressComponent[]) => {
       admin = component.long_name;
     }
 
-    if (component.types.includes("locality") || component.types.includes("postal_town")) {
+    if (
+      component.types.includes("locality") ||
+      component.types.includes("postal_town")
+    ) {
       city = component.long_name;
     }
   }
