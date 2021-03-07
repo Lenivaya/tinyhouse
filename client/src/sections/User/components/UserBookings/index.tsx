@@ -68,8 +68,8 @@ export const UserBookings = ({
         Bookings
       </Title>
       <Paragraph className="user-bookings__description">
-        This section highlights the bookings you've made, and the check-in/check-out dates
-        associated with said bookings.
+        This section highlights the bookings you've made, and the
+        check-in/check-out dates associated with said bookings.
       </Paragraph>
       {userBookingsList}
     </div>

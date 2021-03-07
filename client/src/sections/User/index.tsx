@@ -35,6 +35,11 @@ export const User = ({ viewer, match }: Props & RouteComponentProps<MatchParams>
     }
   });
 
+  const stripeError = new URL(window.location.href).searchParams.get("stripe_error");
+  const stripeErrorBanner = stripeError ? (
+    <ErrorBanner description="We had an issue connecting with Stripe. Please try again soon." />
+  ) : null;
+
   if (loading) {
     return (
       <Content className="user">
@@ -82,7 +87,8 @@ export const User = ({ viewer, match }: Props & RouteComponentProps<MatchParams>
 
   return (
     <Content className="user">
-      <Row gutter={12} justify="space-between">
+      {stripeErrorBanner}
+      <Row gutter={12} type="flex" justify="space-between">
         <Col xs={24}>{userProfileElement}</Col>
         <Col xs={24}>
           {userListingsElement}
