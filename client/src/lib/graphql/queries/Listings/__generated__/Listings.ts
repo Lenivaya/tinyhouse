@@ -20,6 +20,7 @@ export interface Listings_listings_result {
 
 export interface Listings_listings {
   __typename: "Listings";
+  region: string | null;
   result: Listings_listings_result[];
 }
 
@@ -28,6 +29,7 @@ export interface Listings {
 }
 
 export interface ListingsVariables {
+  location?: string | null;
   filter: ListingsFilter;
   limit: number;
   page: number;
