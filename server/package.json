@@ -10,6 +10,7 @@
     "@types/google__maps": "^0.5.14",
     "@types/lodash.merge": "^4.6.6",
     "@types/mongodb": "^3.6.7",
+    "@types/stripe": "^8.0.417",
     "apollo-server-express": "^2.21.0",
     "body-parser": "^1.19.0",
     "cookie-parser": "^1.4.5",
@@ -17,7 +18,8 @@
     "googleapis": "^67.1.0",
     "graphql": "^15.5.0",
     "lodash.merge": "^4.6.2",
-    "mongodb": "^3.6.4"
+    "mongodb": "^3.6.4",
+    "stripe": "^8.137.0"
   },
   "devDependencies": {
     "@types/body-parser": "^1.19.0",
