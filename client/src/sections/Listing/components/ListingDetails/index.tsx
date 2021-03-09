@@ -1,6 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { Avatar, Divider, Tag, Typography } from "antd";
+import { Avatar, Divider,  Tag, Typography } from "antd";
 import { EnvironmentOutlined } from "@ant-design/icons";
 import { Listing as ListingData } from "../../../../lib/graphql/queries/Listing/__generated__/Listing";
 import { iconColor } from "../../../../lib/utils";
