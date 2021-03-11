@@ -29,6 +29,7 @@ import {
   displaySuccessNotification,
   displayErrorMessage
 } from "../../lib/utils";
+import { useScrollToTop } from "../../lib/hooks";
 import { Viewer } from "../../lib/types";
 
 interface Props {
@@ -58,6 +59,8 @@ export const Host = ({ viewer }: Props) => {
       );
     }
   });
+
+  useScrollToTop();
 
   const handleImageUpload = (info: UploadChangeParam) => {
     const { file } = info;

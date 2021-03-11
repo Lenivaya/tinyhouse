@@ -9,6 +9,7 @@ import {
 } from "../../lib/graphql/queries/User/__generated__/User";
 import { ErrorBanner, PageSkeleton } from "../../lib/components";
 import { Viewer } from "../../lib/types";
+import { useScrollToTop } from "../../lib/hooks";
 import { UserBookings, UserListings, UserProfile } from "./components";
 
 interface Props {
@@ -31,21 +32,28 @@ export const User = ({
   const [listingsPage, setListingsPage] = useState(1);
   const [bookingsPage, setBookingsPage] = useState(1);
 
-  const { data, loading, error, refetch } = useQuery<UserData, UserVariables>(USER, {
-    variables: {
-      id: match.params.id,
-      bookingsPage,
-      listingsPage,
-      limit: PAGE_LIMIT
-    },
-    fetchPolicy: "cache-and-network"
-  });
+  const { data, loading, error, refetch } = useQuery<UserData, UserVariables>(
+    USER,
+    {
+      variables: {
+        id: match.params.id,
+        bookingsPage,
+        listingsPage,
+        limit: PAGE_LIMIT
+      },
+      fetchPolicy: "cache-and-network"
+    }
+  );
+
+  useScrollToTop();
 
   const handleUserRefetch = async () => {
     await refetch();
   };
 
-  const stripeError = new URL(window.location.href).searchParams.get("stripe_error");
+  const stripeError = new URL(window.location.href).searchParams.get(
+    "stripe_error"
+  );
   const stripeErrorBanner = stripeError ? (
     <ErrorBanner description="We had an issue connecting with Stripe. Please try again soon." />
   ) : null;

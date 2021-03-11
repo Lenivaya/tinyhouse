@@ -13,6 +13,7 @@ import {
   LogInVariables
 } from "../../lib/graphql/mutations/LogIn/__generated__/LogIn";
 import { AUTH_URL } from "../../lib/graphql/queries";
+import { useScrollToTop } from "../../lib/hooks";
 import { AuthUrl as AuthUrlData } from "../../lib/graphql/queries/AuthUrl/__generated__/AuthUrl";
 
 // Image Assets
@@ -42,6 +43,8 @@ export const Login: FC<Props> = ({ setViewer }) => {
     }
   });
   const logInRef = useRef(logIn);
+
+  useScrollToTop();
 
   useEffect(() => {
     const code = new URL(window.location.href).searchParams.get("code");

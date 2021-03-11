@@ -16,6 +16,7 @@ import {
   WrappedListingCreateBookingModal as ListingCreateBookingModal,
   ListingDetails
 } from "./components";
+import { useScrollToTop } from "../../lib/hooks";
 
 interface MatchParams {
   id: string;
@@ -28,22 +29,26 @@ interface Props {
 const { Content } = Layout;
 const PAGE_LIMIT = 3;
 
-export const Listing = ({ viewer, match }: Props & RouteComponentProps<MatchParams>) => {
+export const Listing = ({
+  viewer,
+  match
+}: Props & RouteComponentProps<MatchParams>) => {
   const [bookingsPage, setBookingsPage] = useState(1);
   const [checkInDate, setCheckInDate] = useState<Moment | null>(null);
   const [checkOutDate, setCheckOutDate] = useState<Moment | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
 
-  const { loading, data, error, refetch } = useQuery<ListingData, ListingVariables>(
-    LISTING,
-    {
-      variables: {
-        id: match.params.id,
-        bookingsPage,
-        limit: PAGE_LIMIT
-      }
+  const { loading, data, error, refetch } = useQuery<
+    ListingData,
+    ListingVariables
+  >(LISTING, {
+    variables: {
+      id: match.params.id,
+      bookingsPage,
+      limit: PAGE_LIMIT
     }
-  );
+  });
+  useScrollToTop();
 
   const clearBookingData = () => {
     setModalVisible(false);
@@ -75,7 +80,9 @@ export const Listing = ({ viewer, match }: Props & RouteComponentProps<MatchPara
   const listing = data ? data.listing : null;
   const listingBookings = listing ? listing.bookings : null;
 
-  const listingDetailsElement = listing ? <ListingDetails listing={listing} /> : null;
+  const listingDetailsElement = listing ? (
+    <ListingDetails listing={listing} />
+  ) : null;
 
   const listingBookingsElement = listingBookings ? (
     <ListingBookings
@@ -116,7 +123,7 @@ export const Listing = ({ viewer, match }: Props & RouteComponentProps<MatchPara
 
   return (
     <Content className="listings">
-      <Row gutter={24}  justify="space-between">
+      <Row gutter={24} justify="space-between">
         <Col xs={24} lg={14}>
           {listingDetailsElement}
           {listingBookingsElement}

@@ -9,7 +9,12 @@ import {
   ListingsVariables
 } from "../../lib/graphql/queries/Listings/__generated__/Listings";
 import { ListingsFilter } from "../../lib/graphql/globalTypes";
-import { ListingsFilters, ListingsPagination, ListingsSkeleton } from "./components";
+import { useScrollToTop } from "../../lib/hooks";
+import {
+  ListingsFilters,
+  ListingsPagination,
+  ListingsSkeleton
+} from "./components";
 
 interface MatchParams {
   location: string;
@@ -25,15 +30,20 @@ export const Listings = ({ match }: RouteComponentProps<MatchParams>) => {
   const [filter, setFilter] = useState(ListingsFilter.PRICE_LOW_TO_HIGH);
   const [page, setPage] = useState(1);
 
-  const { loading, data, error } = useQuery<ListingsData, ListingsVariables>(LISTINGS, {
-    skip: locationRef.current !== match.params.location && page !== 1,
-    variables: {
-      location: match.params.location,
-      filter,
-      limit: PAGE_LIMIT,
-      page
+  const { loading, data, error } = useQuery<ListingsData, ListingsVariables>(
+    LISTINGS,
+    {
+      skip: locationRef.current !== match.params.location && page !== 1,
+      variables: {
+        location: match.params.location,
+        filter,
+        limit: PAGE_LIMIT,
+        page
+      }
     }
-  });
+  );
+
+  useScrollToTop();
 
   useEffect(() => {
     setPage(1);
@@ -94,7 +104,8 @@ export const Listings = ({ match }: RouteComponentProps<MatchParams>) => {
           <Text mark>"{listingsRegion}"</Text>
         </Paragraph>
         <Paragraph>
-          Be the first person to create a <Link to="/host">listing in this area</Link>!
+          Be the first person to create a{" "}
+          <Link to="/host">listing in this area</Link>!
         </Paragraph>
       </div>
     );
