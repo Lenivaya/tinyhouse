@@ -2,7 +2,7 @@ import { Booking, Listing, ListingType } from "../../../lib/types";
 
 export enum ListingsFilter {
   PRICE_LOW_TO_HIGH = "PRICE_LOW_TO_HIGH",
-  PRICE_HIGH_TO_LOW = "PRICE_HIGH_TO_LOW"
+  PRICE_HIGH_TO_LOW = "PRICE_HIGH_TO_LOW",
 }
 
 export interface ListingArgs {
@@ -50,4 +50,8 @@ export interface HostListingInput {
 
 export interface HostListingArgs {
   input: HostListingInput;
+}
+
+export interface Order {
+  price: 1 | "ASC" | "DESC" | -1 | undefined;
 }

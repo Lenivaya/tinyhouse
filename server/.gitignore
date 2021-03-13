@@ -13,3 +13,7 @@ yarn-error.log*
 .eslintcache
 build/
 .env
+
+# Database
+sockets
+db

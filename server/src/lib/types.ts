@@ -1,16 +1,17 @@
-import { Collection, ObjectId } from "mongodb";
+import { Repository } from "typeorm";
+import { BookingEntity, ListingEntity, UserEntity } from "../database/entity";
 
 export interface Viewer {
-  _id?: string;
+  id?: string;
   token?: string;
   avatar?: string;
-  walletId?: string;
+  walletId?: string | null;
   didRequest: boolean;
 }
 
 export enum ListingType {
   Apartment = "APARTMENT",
-  House = "HOUSE"
+  House = "HOUSE",
 }
 
 export interface BookingsIndexMonth {
@@ -21,16 +22,20 @@ export interface BookingsIndexYear {
   [key: string]: BookingsIndexMonth;
 }
 
+export interface BookingsIndex {
+  [key: string]: BookingsIndexYear;
+}
+
 export interface Booking {
-  _id: ObjectId;
-  listing: ObjectId;
+  id: string;
+  listing: string;
   tenant: string;
   checkIn: string;
   checkOut: string;
 }
 
 export interface Listing {
-  _id: ObjectId;
+  id: string;
   title: string;
   description: string;
   image: string;
@@ -40,28 +45,28 @@ export interface Listing {
   country: string;
   admin: string;
   city: string;
-  bookings: ObjectId[];
-  bookingsIndex: BookingsIndexYear;
+  bookings: string[];
+  bookingsIndex: BookingsIndex;
   price: number;
   numOfGuests: number;
   authorized?: boolean;
 }
 
 export interface User {
-  _id: string;
+  id: string;
   token: string;
   name: string;
   avatar: string;
   contact: string;
-  walletId?: string;
+  walletId?: string | null;
   income: number;
-  bookings: ObjectId[];
-  listings: ObjectId[];
+  bookings: string[];
+  listings: string[];
   authorized?: boolean;
 }
 
 export interface Database {
-  bookings: Collection<Booking>;
-  listings: Collection<Listing>;
-  users: Collection<User>;
+  bookings: Repository<BookingEntity>;
+  listings: Repository<ListingEntity>;
+  users: Repository<UserEntity>;
 }

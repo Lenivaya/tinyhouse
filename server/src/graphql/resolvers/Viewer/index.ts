@@ -10,7 +10,7 @@ const cookieOptions = {
   httpOnly: true,
   sameSite: true,
   signed: true,
-  secure: process.env.NODE_ENV === "development" ? false : true
+  secure: process.env.NODE_ENV === "development" ? false : true,
 };
 
 const logInViaGoogle = async (
@@ -52,39 +52,32 @@ const logInViaGoogle = async (
     throw new Error("Google login error");
   }
 
-  const updateRes = await db.users.findOneAndUpdate(
-    { _id: userId },
-    {
-      $set: {
-        name: userName,
-        avatar: userAvatar,
-        contact: userEmail,
-        token
-      }
-    },
-    { returnOriginal: false }
-  );
+  let viewer = await db.users.findOne({ id: userId });
 
-  let viewer = updateRes.value;
-
-  if (!viewer) {
-    const insertResult = await db.users.insertOne({
-      _id: userId,
+  if (viewer) {
+    viewer.name = userName;
+    viewer.avatar = userAvatar;
+    viewer.contact = userEmail;
+    viewer.token = token;
+    await viewer.save();
+  } else {
+    const newUser: User = {
+      id: userId,
       token,
       name: userName,
       avatar: userAvatar,
       contact: userEmail,
       income: 0,
       bookings: [],
-      listings: []
-    });
+      listings: [],
+    };
 
-    viewer = insertResult.ops[0];
+    viewer = await db.users.create(newUser).save();
   }
 
   res.cookie("viewer", userId, {
     ...cookieOptions,
-    maxAge: 365 * 24 * 60 * 60 * 1000
+    maxAge: 365 * 24 * 60 * 60 * 1000,
   });
 
   return viewer;
@@ -96,15 +89,12 @@ const logInViaCookie = async (
   req: Request,
   res: Response
 ): Promise<User | undefined> => {
-  const updateRes = await db.users.findOneAndUpdate(
-    { _id: req.signedCookies.viewer },
-    { $set: { token } },
-    { returnOriginal: false }
-  );
+  const viewer = await db.users.findOne({ id: req.signedCookies.viewer });
 
-  let viewer = updateRes.value;
-
-  if (!viewer) {
+  if (viewer) {
+    viewer.token = token;
+    await viewer.save();
+  } else {
     res.clearCookie("viewer", cookieOptions);
   }
 
@@ -119,8 +109,9 @@ export const viewerResolvers: IResolvers = {
       } catch (error) {
         throw new Error(`Failed to query Google Auth Url: ${error}`);
       }
-    }
+    },
   },
+
   Mutation: {
     logIn: async (
       _root: undefined,
@@ -140,16 +131,17 @@ export const viewerResolvers: IResolvers = {
         }
 
         return {
-          _id: viewer._id,
+          id: viewer.id,
           token: viewer.token,
           avatar: viewer.avatar,
           walletId: viewer.walletId,
-          didRequest: true
+          didRequest: true,
         };
       } catch (error) {
         throw new Error(`Failed to log in: ${error}`);
       }
     },
+
     logOut: (_root: undefined, _args: {}, { res }: { res: Response }): Viewer => {
       try {
         res.clearCookie("viewer", cookieOptions);
@@ -158,6 +150,7 @@ export const viewerResolvers: IResolvers = {
         throw new Error(`Failed to log out: ${error}`);
       }
     },
+
     connectStripe: async (
       _root: undefined,
       { input }: ConnectStripeArgs,
@@ -166,7 +159,7 @@ export const viewerResolvers: IResolvers = {
       try {
         const { code } = input;
 
-        let viewer = await authorize(db, req);
+        const viewer = await authorize(db, req);
         if (!viewer) {
           throw new Error("viewer cannot be found");
         }
@@ -176,36 +169,28 @@ export const viewerResolvers: IResolvers = {
           throw new Error("stripe grant error");
         }
 
-        const updateRes = await db.users.findOneAndUpdate(
-          { _id: viewer._id },
-          { $set: { walletId: wallet.stripe_user_id } },
-          { returnOriginal: false }
-        );
-
-        if (!updateRes.value) {
-          throw new Error("viewer could not be updated");
-        }
-
-        viewer = updateRes.value;
+        viewer.walletId = wallet.stripe_user_id;
+        await viewer.save();
 
         return {
-          _id: viewer._id,
+          id: viewer.id,
           token: viewer.token,
           avatar: viewer.avatar,
           walletId: viewer.walletId,
-          didRequest: true
+          didRequest: true,
         };
       } catch (error) {
         throw new Error(`Failed to connect with Stripe: ${error}`);
       }
     },
+
     disconnectStripe: async (
       _root: undefined,
       _args: {},
       { db, req }: { db: Database; req: Request }
     ): Promise<Viewer> => {
       try {
-        let viewer = await authorize(db, req);
+        const viewer = await authorize(db, req);
         if (!viewer || !viewer.walletId) {
           throw new Error("viewer cannot be found or has not connected with Stripe");
         }
@@ -215,36 +200,25 @@ export const viewerResolvers: IResolvers = {
           throw new Error("stripe disconnect error");
         }
 
-        const updateRes = await db.users.findOneAndUpdate(
-          { _id: viewer._id },
-          { $set: { walletId: null } },
-          { returnOriginal: false }
-        );
-
-        if (!updateRes.value) {
-          throw new Error("viewer could not be updated");
-        }
-
-        viewer = updateRes.value;
+        viewer.walletId = null;
+        await viewer.save();
 
         return {
-          _id: viewer._id,
+          id: viewer.id,
           token: viewer.token,
           avatar: viewer.avatar,
           walletId: viewer.walletId,
-          didRequest: true
+          didRequest: true,
         };
       } catch (error) {
         throw new Error(`Failed to disconnect with Stripe: ${error}`);
       }
-    }
-  },
-  Viewer: {
-    id: (viewer: Viewer): string | undefined => {
-      return viewer._id;
     },
+  },
+
+  Viewer: {
     hasWallet: (viewer: Viewer): boolean | undefined => {
       return viewer.walletId ? true : undefined;
-    }
-  }
+    },
+  },
 };
