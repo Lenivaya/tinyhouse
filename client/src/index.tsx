@@ -1,7 +1,13 @@
 import React, { useState, useEffect, useRef } from "react";
 import { BrowserRouter as Router, Route, Switch } from "react-router-dom";
-import ApolloClient from "apollo-boost";
-import { ApolloProvider, useMutation } from "@apollo/react-hooks";
+import {
+  createHttpLink,
+  ApolloClient,
+  ApolloProvider,
+  useMutation,
+  InMemoryCache
+} from "@apollo/react-hooks";
+import { setContext } from "@apollo/client/link/context";
 import { StripeProvider, Elements } from "react-stripe-elements";
 import { Affix, Spin, Layout } from "antd";
 import {
@@ -26,16 +32,26 @@ import "./styles/index.css";
 import reportWebVitals from "./reportWebVitals";
 import ReactDOM from "react-dom";
 
-const client = new ApolloClient({
+const authLink = setContext((_, { headers }) => {
+  // get the authentication token from local storage if it exists
+  const token = sessionStorage.getItem("token");
+  // return the headers to the context so httpLink can read them
+  return {
+    headers: {
+      ...headers,
+      "X-CSRF-TOKEN": token || ""
+    }
+  };
+});
+
+const httpLink = createHttpLink({
   uri: "/api",
-  request: async operation => {
-    const token = sessionStorage.getItem("token");
-    operation.setContext({
-      headers: {
-        "X-CSRF-TOKEN": token || ""
-      }
-    });
-  }
+  credentials: "same-origin"
+});
+
+const client = new ApolloClient({
+  link: authLink.concat(httpLink),
+  cache: new InMemoryCache()
 });
 
 const initialViewer: Viewer = {
@@ -83,44 +99,42 @@ const App = () => {
   ) : null;
 
   return (
-
-      <Router>
-        <Layout id="app">
-          {logInErrorBannerElement}
-          <Affix offsetTop={0} className="app__affix-header">
-            <AppHeader viewer={viewer} setViewer={setViewer} />
-          </Affix>
-          <Switch>
-            <Route exact path="/">
-              <Home />
-            </Route>
-            <Route exact path="/host">
-              <Host viewer={viewer} />
-            </Route>
-            <Route exact path="/listing/:id">
-              <Elements>
-                <Listing viewer={viewer} />
-              </Elements>
-            </Route>
-            <Route exact path="/listings/:location?">
-              <Listings />
-            </Route>
-            <Route exact path="/login">
-              <Login setViewer={setViewer} />
-            </Route>
-            <Route exact path="/stripe">
-              <Stripe viewer={viewer} setViewer={setViewer} />
-            </Route>
-            <Route exact path="/user/:id">
-              <User viewer={viewer} setViewer={setViewer} />
-            </Route>
-            <Route>
-              <NotFound />
-            </Route>
-          </Switch>
-        </Layout>
-      </Router>
-
+    <Router>
+      <Layout id="app">
+        {logInErrorBannerElement}
+        <Affix offsetTop={0} className="app__affix-header">
+          <AppHeader viewer={viewer} setViewer={setViewer} />
+        </Affix>
+        <Switch>
+          <Route exact path="/">
+            <Home />
+          </Route>
+          <Route exact path="/host">
+            <Host viewer={viewer} />
+          </Route>
+          <Route exact path="/listing/:id">
+            <Elements>
+              <Listing viewer={viewer} />
+            </Elements>
+          </Route>
+          <Route exact path="/listings/:location?">
+            <Listings />
+          </Route>
+          <Route exact path="/login">
+            <Login setViewer={setViewer} />
+          </Route>
+          <Route exact path="/stripe">
+            <Stripe viewer={viewer} setViewer={setViewer} />
+          </Route>
+          <Route exact path="/user/:id">
+            <User viewer={viewer} setViewer={setViewer} />
+          </Route>
+          <Route>
+            <NotFound />
+          </Route>
+        </Switch>
+      </Layout>
+    </Router>
   );
 };
 

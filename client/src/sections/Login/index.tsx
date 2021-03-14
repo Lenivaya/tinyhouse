@@ -1,72 +1,76 @@
-import React, { FC, useEffect, useRef } from "react";
+import React, { useEffect, useRef } from "react";
+import { Redirect, useLocation } from "react-router-dom";
 import { useApolloClient, useMutation } from "@apollo/react-hooks";
-import { Viewer } from "../../lib/types";
 import { Card, Layout, Spin, Typography } from "antd";
 import { ErrorBanner } from "../../lib/components";
-import {
-  displaySuccessNotification,
-  displayErrorMessage
-} from "../../lib/utils";
 import { LOG_IN } from "../../lib/graphql/mutations";
-import {
-  LogIn as LoginData,
-  LogInVariables
-} from "../../lib/graphql/mutations/LogIn/__generated__/LogIn";
 import { AUTH_URL } from "../../lib/graphql/queries";
-import { useScrollToTop } from "../../lib/hooks";
+import {
+  LogIn as LogInData,
+  LogInVariables,
+} from "../../lib/graphql/mutations/LogIn/__generated__/LogIn";
 import { AuthUrl as AuthUrlData } from "../../lib/graphql/queries/AuthUrl/__generated__/AuthUrl";
+import { useScrollToTop } from "../../lib/hooks";
+import { displaySuccessNotification, displayErrorMessage } from "../../lib/utils";
+import { Viewer } from "../../lib/types";
 
 // Image Assets
 import googleLogo from "./assets/google_logo.jpg";
-import { Redirect } from "react-router-dom";
-
-const { Content } = Layout;
-const { Text, Title } = Typography;
 
 interface Props {
   setViewer: (viewer: Viewer) => void;
 }
 
-export const Login: FC<Props> = ({ setViewer }) => {
-  const client = useApolloClient();
+const { Content } = Layout;
+const { Text, Title } = Typography;
 
+export const Login = ({ setViewer }: Props) => {
+  const client = useApolloClient();
   const [
     logIn,
-    { data: logInData, loading: logInLoading, error: logInError }
-  ] = useMutation<LoginData, LogInVariables>(LOG_IN, {
-    onCompleted: data => {
-      if (data && data.logIn) {
+    { data: logInData, loading: logInLoading, error: logInError },
+  ] = useMutation<LogInData, LogInVariables>(LOG_IN, {
+    onCompleted: (data) => {
+      if (data && data.logIn && data.logIn.token) {
         setViewer(data.logIn);
-        sessionStorage.setItem("token", data.logIn.token || "");
+        sessionStorage.setItem("token", data.logIn.token);
         displaySuccessNotification("You've successfully logged in!");
       }
-    }
+    },
+    onError: () => {}, // necessary to test error state of component
   });
   const logInRef = useRef(logIn);
 
+  const location = useLocation();
   useScrollToTop();
 
   useEffect(() => {
-    const code = new URL(window.location.href).searchParams.get("code");
+    const searchParams = new URLSearchParams(location.search);
+    const code = searchParams.get("code");
+
     if (code) {
       logInRef.current({
         variables: {
-          input: { code }
-        }
+          input: { code },
+        },
       });
     }
-  }, []);
+  }, [location.search]);
 
   const handleAuthorize = async () => {
     try {
       const { data } = await client.query<AuthUrlData>({
-        query: AUTH_URL
+        query: AUTH_URL,
       });
 
-      window.location.href = data.authUrl;
-    } catch (err) {
+      if (!data) {
+        throw new Error("Unable to authenticate");
+      }
+
+      window.location.assign(data.authUrl);
+    } catch {
       displayErrorMessage(
-        "Sorry! We weren't able to log you in. Please try again later."
+        "Sorry! We weren't able to log you in. Please try again later!"
       );
     }
   };
@@ -74,7 +78,7 @@ export const Login: FC<Props> = ({ setViewer }) => {
   if (logInLoading) {
     return (
       <Content className="log-in">
-        <Spin size="large" tip="Logging you in" />
+        <Spin size="large" tip="Logging you in..." />
       </Content>
     );
   }
@@ -84,13 +88,13 @@ export const Login: FC<Props> = ({ setViewer }) => {
     return <Redirect to={`/user/${viewerId}`} />;
   }
 
-  const logInErrorBanner = logInError ? (
-    <ErrorBanner description="Sorry! We weren't able to log you in. Please try again later." />
+  const logInErrorBannerElement = logInError ? (
+    <ErrorBanner description="Sorry! We weren't able to log you in. Please try again later!" />
   ) : null;
 
   return (
     <Content className="log-in">
-      {logInErrorBanner}
+      {logInErrorBannerElement}
       <Card className="log-in-card">
         <div className="log-in-card__intro">
           <Title level={3} className="log-in-card__intro-title">
@@ -103,22 +107,17 @@ export const Login: FC<Props> = ({ setViewer }) => {
           </Title>
           <Text>Sign in with Google to start booking available rentals!</Text>
         </div>
-        <button
-          className="log-in-card__google-button"
-          onClick={handleAuthorize}
-        >
+        <button className="log-in-card__google-button" onClick={handleAuthorize}>
           <img
             src={googleLogo}
             alt="Google Logo"
             className="log-in-card__google-button-logo"
           />
-          <span className="log-in-card__google-button-text">
-            Sign in with Google
-          </span>
+          <span className="log-in-card__google-button-text">Sign in with Google</span>
         </button>
         <Text type="secondary">
-          Note: By signing in, you'll be redirected to the Google consent form
-          to sign in with your Google account.
+          Note: By signing in, you'll be redirected to the Google consent form to sign in
+          with your Google account.
         </Text>
       </Card>
     </Content>

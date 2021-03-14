@@ -105,7 +105,7 @@ export const User = ({ viewer, setViewer }: Props) => {
   return (
     <Content className="user">
       {stripeErrorBanner}
-      <Row gutter={12} type="flex" justify="space-between">
+      <Row gutter={12}  justify="space-between">
         <Col xs={24}>{userProfileElement}</Col>
         <Col xs={24}>
           {userListingsElement}
